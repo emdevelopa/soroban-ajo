@@ -1,0 +1,43 @@
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Soroban
+.soroban/
+*.wasm
+*.optimized.wasm
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node (for future frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+*.profraw
+*.profdata
+
+# System
+Thumbs.db
+.cache/

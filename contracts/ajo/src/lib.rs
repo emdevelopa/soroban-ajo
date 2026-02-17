@@ -1,0 +1,22 @@
+#![no_std]
+
+//! # Soroban Ajo (Esusu) Contract
+//!
+//! This contract implements a decentralized rotational savings and credit association (ROSCA).
+//! Members join a group, contribute a fixed amount each cycle, and receive payouts in rotation.
+//!
+//! ## Key Features
+//! - Trustless group savings
+//! - Automated payout rotation
+//! - Transparent contribution tracking
+//! - Native XLM support
+
+mod contract;
+mod errors;
+mod events;
+mod storage;
+mod types;
+mod utils;
+
+pub use contract::AjoContract;
+pub use contract::AjoContractClient;
