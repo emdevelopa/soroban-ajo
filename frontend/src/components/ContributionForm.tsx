@@ -2,8 +2,8 @@
 // Complexity: Trivial (100 pts)
 // Status: Implemented with comprehensive validation
 
-import React, { useEffect, useState } from 'react'
-import { ContributionValidation, ValidationError } from '../types'
+import React, { useState, useEffect, useRef } from 'react'
+import { ValidationError, ContributionValidation } from '../types'
 
 interface ContributionFormProps {
   groupId: string
@@ -16,7 +16,8 @@ interface ContributionFormProps {
 export const ContributionForm: React.FC<ContributionFormProps> = ({
   groupId,
   contributionAmount,
-  userBalance = 1000,
+  userBalance = 1000, // Mock balance
+  userAddress: _userAddress,
   existingContributions = [],
 }) => {
   const [amount, setAmount] = useState(contributionAmount)
@@ -108,6 +109,7 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
     setTouched(true)
 
     const validation = validateForm()
+
     if (!validation.isValid) {
       return
     }
@@ -116,13 +118,24 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
     setErrors([])
 
     try {
+      // TODO: Validate amount
+      // TODO: Call contribute function on smart contract
+      // TODO: Sign transaction with user's wallet
+      // TODO: Show success/error notification
+      // TODO: Update contributions in UI
+
+    try {
       console.log('Contributing to group:', groupId, 'Amount:', amount)
       await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       setSuccessMessage('Contribution successful! Transaction confirmed.')
       setAmount(contributionAmount)
       setTouched(false)
 
+      // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(''), 5000)
     } catch {
       setErrors([
@@ -136,18 +149,25 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
     }
   }
 
-  const getErrorByField = (field: string): string | undefined =>
-    errors.find((err) => err.field === field)?.message
+  const getErrorByField = (field: string): string | undefined => {
+    return errors.find((e) => e.field === field)?.message
+  }
 
-  const hasError = (field: string): boolean =>
-    errors.some((err) => err.field === field)
+  const hasError = (field: string): boolean => {
+    return errors.some((e) => e.field === field)
+  }
 
   const totalAmount = amount + NETWORK_FEE
   const isFormValid = errors.length === 0 && amount > 0
 
+  const errorSummaryRef = useRef<HTMLDivElement>(null)
+  const amountInputRef = useRef<HTMLInputElement>(null)
+  const formErrors = { amount: getErrorByField('amount') }
+  const error = getErrorByField('submit') || getErrorByField('duplicate')
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 max-w-md">
-      <h3 className="text-2xl font-bold mb-4">Make a Contribution</h3>
+    <div className="bg-white rounded-lg shadow p-6 max-w-md">
+      <h1 className="text-2xl font-bold mb-2">Make a Contribution</h1>
 
       {successMessage && (
         <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-lg text-sm flex items-center">
@@ -161,33 +181,69 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
           {successMessage}
         </div>
       )}
+      <p className="text-sm text-gray-600 mb-6">
+        Enter the amount you'd like to contribute to this group. Fields marked with <span className="text-red-600 font-semibold">*</span> are required.
+      </p>
 
-      {(hasError('submit') || hasError('duplicate')) && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg text-sm">
-          {getErrorByField('submit') || getErrorByField('duplicate')}
+      {formErrors.amount && (
+        <div
+          ref={errorSummaryRef}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+          tabIndex={-1}
+        >
+          <h2 className="text-sm font-semibold text-red-800 mb-2">Please fix this error:</h2>
+          <ul className="text-sm text-red-700 space-y-1">
+            {formErrors.amount && (
+              <li>
+                <a href="#amount" className="underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-red-600 rounded px-1">
+                  {formErrors.amount}
+                </a>
+              </li>
+            )}
+          </ul>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="contribution-amount" className="block text-sm font-semibold mb-2">
-            Amount to Contribute ($)
-          </label>
-          <input
-            id="contribution-amount"
-            type="number"
-            value={amount || ''}
-            onChange={(e) => handleAmountChange(e.target.value)}
-            step="0.01"
-            min="0"
-            className={`w-full px-4 py-2 border rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 transition-colors ${
-              hasError('amount')
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:ring-blue-500'
-            }`}
-            placeholder="0.00"
-          />
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg text-sm font-medium"
+        >
+          ⚠️ {error}
+        </div>
+      )}
 
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <div>
+          <label htmlFor="amount" className="block text-sm font-semibold mb-2">
+            Amount to Contribute ($) <span className="text-red-600 font-semibold" aria-label="required">*</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-3 text-gray-600" aria-hidden="true">$</span>
+            <input
+              ref={amountInputRef}
+              id="amount"
+              type="number"
+              value={amount || ''}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              onBlur={handleBlur}
+              step="0.01"
+              min="0"
+              className={`w-full pl-8 pr-4 py-2 border rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 transition-colors ${
+                hasError('amount')
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          {/* Amount Validation Errors */}
           {hasError('amount') && (
             <p className="mt-1 text-sm text-red-600">{getErrorByField('amount')}</p>
           )}
