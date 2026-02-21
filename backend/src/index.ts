@@ -10,6 +10,7 @@ import { groupsRouter } from './routes/groups'
 import { healthRouter } from './routes/health'
 import { webhooksRouter } from './routes/webhooks'
 import { authRouter } from './routes/auth'
+import { setupSwagger } from './swagger'
 
 dotenv.config()
 
