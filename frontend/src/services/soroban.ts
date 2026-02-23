@@ -57,7 +57,7 @@ class CircuitBreaker {
   recordFailure(): void {
     this.failures++
     this.lastFailureTime = Date.now()
-    
+
     if (this.failures >= CIRCUIT_BREAKER_THRESHOLD) {
       this.state = 'open'
       console.warn('[Circuit Breaker] Circuit opened due to repeated failures')
@@ -96,10 +96,10 @@ async function withRetry<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const result = await operation()
-      
+
       // Record success in circuit breaker
       circuitBreaker.recordSuccess()
-      
+
       return result
     } catch (error) {
       lastError = error
@@ -124,7 +124,7 @@ async function withRetry<T>(
 
         // Wait before retrying
         await new Promise(resolve => setTimeout(resolve, delay))
-        
+
         // Exponential backoff
         delay *= backoffMultiplier
       } else {
@@ -212,6 +212,7 @@ export interface SorobanService {
   getGroupStatus: (groupId: string, useCache?: boolean) => Promise<any>
   getGroupMembers: (groupId: string, useCache?: boolean) => Promise<any[]>
   getUserGroups: (userId: string, useCache?: boolean) => Promise<any[]>
+  getTransactions: (groupId: string, cursor?: string, limit?: number) => Promise<{ transactions: any[], nextCursor?: string }>
   invalidateGroupCache: (groupId: string) => void
   invalidateUserCache: (userId: string) => void
   clearCache: () => void
@@ -296,13 +297,13 @@ export const initializeSoroban = (): SorobanService => {
               },
             }
           )
-          
+
           trackUserAction.groupCreated(groupId, params)
           showNotification.success('Group created successfully!')
-          
+
           // Invalidate groups list cache
           cacheService.invalidateByTag(CacheTags.groups)
-          
+
           return groupId
         } catch (error) {
           const { message: _message, severity } = classifyError(error)
@@ -323,10 +324,10 @@ export const initializeSoroban = (): SorobanService => {
             },
             'joinGroup'
           )
-          
+
           trackUserAction.groupJoined(groupId)
           showNotification.success('Successfully joined group!')
-          
+
           // Invalidate group-specific and groups list cache
           cacheService.invalidateByTag(CacheTags.group(groupId))
           cacheService.invalidateByTag(CacheTags.groups)
@@ -356,10 +357,10 @@ export const initializeSoroban = (): SorobanService => {
               },
             }
           )
-          
+
           trackUserAction.contributionMade(groupId, amount)
           showNotification.success(`Contribution of ${amount} XLM successful!`)
-          
+
           // Invalidate group status and transaction caches
           cacheService.invalidateByTag(CacheTags.group(groupId))
           cacheService.invalidateByTag(CacheTags.transactions)
@@ -376,7 +377,7 @@ export const initializeSoroban = (): SorobanService => {
       return analytics.measureAsync('get_group_status', async () => {
         try {
           const cacheKey = CacheKeys.groupStatus(groupId)
-          
+
           return await cachedFetch(
             cacheKey,
             async () => {
@@ -413,7 +414,7 @@ export const initializeSoroban = (): SorobanService => {
       return analytics.measureAsync('get_group_members', async () => {
         try {
           const cacheKey = CacheKeys.groupMembers(groupId)
-          
+
           return await cachedFetch(
             cacheKey,
             async () => {
@@ -444,7 +445,7 @@ export const initializeSoroban = (): SorobanService => {
       return analytics.measureAsync('get_user_groups', async () => {
         try {
           const cacheKey = CacheKeys.userGroups(userId)
-          
+
           return await cachedFetch(
             cacheKey,
             async () => {
@@ -466,6 +467,72 @@ export const initializeSoroban = (): SorobanService => {
         } catch (error) {
           const { severity } = classifyError(error)
           analytics.trackError(error as Error, { operation: 'getUserGroups', userId }, severity)
+          throw error
+        }
+      })
+    },
+
+    getTransactions: async (groupId: string, cursor?: string, limit: number = 10) => {
+      return analytics.measureAsync('get_transactions', async () => {
+        try {
+          const cacheKey = CacheKeys.transactions(groupId, cursor, limit)
+
+          return await cachedFetch(
+            cacheKey,
+            async () => {
+              return await withRetry(
+                async () => {
+                  console.log('TODO: Implement getTransactions using soroban-rpc getEvents', { groupId, cursor, limit })
+                  // Here we will use the Stellar SDK to query contract events
+                  // For now, return the mock data format so the UI works
+                  return {
+                    transactions: [
+                      {
+                        id: `tx-1-${cursor || 'start'}`,
+                        groupId,
+                        type: 'contribution',
+                        amount: 500,
+                        date: '2026-02-10T12:00:00Z',
+                        member: 'GAAAA...AAAA',
+                        status: 'completed',
+                        hash: '0x123...', // Added for details
+                      },
+                      {
+                        id: `tx-2-${cursor || 'start'}`,
+                        groupId,
+                        type: 'contribution',
+                        amount: 500,
+                        date: '2026-02-11T12:00:00Z',
+                        member: 'GBBBB...BBBB',
+                        status: 'completed',
+                        hash: '0x456...',
+                      },
+                      {
+                        id: `tx-3-${cursor || 'start'}`,
+                        groupId,
+                        type: 'payout',
+                        amount: 4000,
+                        date: '2026-02-12T12:00:00Z',
+                        member: 'GCCCC...CCCC',
+                        status: 'completed',
+                        hash: '0x789...',
+                      },
+                    ],
+                    nextCursor: cursor ? undefined : 'cursor-2', // Mock pagination
+                  }
+                },
+                'getTransactions'
+              )
+            },
+            {
+              ttl: CACHE_TTL.TRANSACTIONS,
+              tags: [CacheTags.transactions, CacheTags.group(groupId)],
+              operationName: 'getTransactions',
+            }
+          )
+        } catch (error) {
+          const { severity } = classifyError(error)
+          analytics.trackError(error as Error, { operation: 'getTransactions', groupId }, severity)
           throw error
         }
       })

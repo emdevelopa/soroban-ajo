@@ -31,6 +31,7 @@ export const QUERY_KEYS = {
   GROUP_DETAIL: (groupId: string) => ['group', groupId] as const,
   GROUP_MEMBERS: (groupId: string) => ['groupMembers', groupId] as const,
   USER_CONTRIBUTIONS: ['user_contributions'] as const,
+  TRANSACTIONS: (groupId: string) => ['transactions', groupId] as const,
 } as const
 
 // React Query default options - frozen for referential stability and to avoid accidental mutation
@@ -147,6 +148,41 @@ export const useGroupMembers = (groupId: string, options: CacheOptions = {}) => 
     staleTime: 60 * 1000,
     enabled: !!groupId,
     select: selectGroupMembersData,
+  })
+}
+
+/**
+ * Fetch transaction history for a group with pagination
+ */
+export const useTransactions = (
+  groupId: string,
+  cursor?: string,
+  limit: number = 10,
+  options: CacheOptions = {}
+) => {
+  const { useCache = true, bustCache = false } = options
+
+  // Use a cursor-specific query key for unique caching per page
+  const queryKey = useMemo(() => [...QUERY_KEYS.TRANSACTIONS(groupId), cursor, limit], [groupId, cursor, limit])
+
+  return useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (bustCache) {
+        cacheService.invalidate(CacheKeys.transactions(groupId, cursor, limit))
+      }
+      try {
+        return await analytics.measureAsync('query_transactions', () =>
+          sorobanService.getTransactions(groupId, cursor, limit)
+        )
+      } catch (error) {
+        analytics.trackError(error as Error, { operation: 'useTransactions', groupId, cursor }, 'medium')
+        throw error
+      }
+    },
+    ...DEFAULT_QUERY_OPTIONS,
+    staleTime: 2 * 60 * 1000, // 2 minutes, transactions are more static
+    enabled: !!groupId,
   })
 }
 
@@ -305,6 +341,7 @@ export const useContribute = () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.GROUP_DETAIL(data.groupId) })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.GROUP_MEMBERS(data.groupId) })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.USER_CONTRIBUTIONS })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRANSACTIONS(data.groupId) })
 
       // Invalidate custom cache
       sorobanService.invalidateGroupCache(data.groupId)

@@ -3,7 +3,7 @@ import { analytics } from '../services/analytics'
 import { useNotificationStore } from '../store/notificationStore'
 
 export const showNotification = {
-  success: (message: string, metadata?: Record<string, any>) => {
+  success: (message: string, metadata?: Record<string, unknown>) => {
     analytics.trackEvent({
       category: 'Notification',
       action: 'Success',
@@ -23,7 +23,7 @@ export const showNotification = {
     })
   },
 
-  error: (message: string, metadata?: Record<string, any>) => {
+  error: (message: string, metadata?: Record<string, unknown>) => {
     analytics.trackError(new Error(message), { ...metadata, operation: 'notification' }, 'low')
 
     useNotificationStore.getState().addNotification({
@@ -38,7 +38,7 @@ export const showNotification = {
     })
   },
 
-  warning: (message: string, metadata?: Record<string, any>) => {
+  warning: (message: string, metadata?: Record<string, unknown>) => {
     useNotificationStore.getState().addNotification({
       type: 'warning',
       message,
@@ -57,7 +57,7 @@ export const showNotification = {
     })
   },
 
-  info: (message: string, metadata?: Record<string, any>) => {
+  info: (message: string, metadata?: Record<string, unknown>) => {
     useNotificationStore.getState().addNotification({
       type: 'info',
       message,
@@ -85,7 +85,7 @@ export const showNotification = {
   promise: async <T>(
     promise: Promise<T>,
     messages: { loading: string; success: string; error: string },
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) => {
     const start = performance.now()
 
