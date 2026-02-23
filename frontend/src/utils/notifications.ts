@@ -1,18 +1,6 @@
-// Issue #31: Build notification system
-// Complexity: High (200 pts)
-// Status: Placeholder
-
 import toast from 'react-hot-toast'
 import { analytics } from '../services/analytics'
-
-// TODO: Setup notification system using react-hot-toast
-// This includes:
-// - Success notifications
-// - Error notifications
-// - Warning notifications
-// - Info notifications
-// - Loading toasts with promises
-// - Notification positioning and styling
+import { useNotificationStore } from '../store/notificationStore'
 
 export const showNotification = {
   success: (message: string, metadata?: Record<string, unknown>) => {
@@ -23,6 +11,12 @@ export const showNotification = {
       metadata,
     })
 
+    useNotificationStore.getState().addNotification({
+      type: 'success',
+      message,
+      metadata,
+    })
+
     toast.success(message, {
       duration: 4000,
       position: 'top-right',
@@ -30,24 +24,24 @@ export const showNotification = {
   },
 
   error: (message: string, metadata?: Record<string, unknown>) => {
-    analytics.trackEvent({
-      category: 'Notification',
-      action: 'Error',
-      label: message,
+    analytics.trackError(new Error(message), { ...metadata, operation: 'notification' }, 'low')
+
+    useNotificationStore.getState().addNotification({
+      type: 'error',
+      message,
       metadata,
     })
 
     toast.error(message, {
-      duration: 4000,
+      duration: 5000,
       position: 'top-right',
     })
   },
 
   warning: (message: string, metadata?: Record<string, unknown>) => {
-    analytics.trackEvent({
-      category: 'Notification',
-      action: 'Warning',
-      label: message,
+    useNotificationStore.getState().addNotification({
+      type: 'warning',
+      message,
       metadata,
     })
 
@@ -55,14 +49,18 @@ export const showNotification = {
       duration: 4000,
       position: 'top-right',
       icon: '⚠️',
+      style: {
+        background: '#FFFBEB',
+        color: '#92400E',
+        border: '1px solid #FCD34D',
+      },
     })
   },
 
   info: (message: string, metadata?: Record<string, unknown>) => {
-    analytics.trackEvent({
-      category: 'Notification',
-      action: 'Info',
-      label: message,
+    useNotificationStore.getState().addNotification({
+      type: 'info',
+      message,
       metadata,
     })
 
@@ -70,6 +68,11 @@ export const showNotification = {
       duration: 4000,
       position: 'top-right',
       icon: 'ℹ️',
+      style: {
+        background: '#EFF6FF',
+        color: '#1E40AF',
+        border: '1px solid #BFDBFE',
+      },
     })
   },
 
@@ -79,7 +82,7 @@ export const showNotification = {
     })
   },
 
-  promise: async <T,>(
+  promise: async <T>(
     promise: Promise<T>,
     messages: { loading: string; success: string; error: string },
     metadata?: Record<string, unknown>
@@ -87,8 +90,23 @@ export const showNotification = {
     const start = performance.now()
 
     try {
-      const result = await toast.promise(promise, messages)
+      const result = await toast.promise(promise, messages, {
+        position: 'top-right',
+        success: {
+          duration: 4000,
+        },
+        error: {
+          duration: 5000,
+        },
+      })
+
       const duration = performance.now() - start
+
+      useNotificationStore.getState().addNotification({
+        type: 'success',
+        message: messages.success,
+        metadata: { ...metadata, duration },
+      })
 
       analytics.trackMetric('promise_notification', duration, {
         ...metadata,
@@ -99,6 +117,12 @@ export const showNotification = {
     } catch (error) {
       const duration = performance.now() - start
 
+      useNotificationStore.getState().addNotification({
+        type: 'error',
+        message: messages.error,
+        metadata: { ...metadata, duration, error: String(error) },
+      })
+
       analytics.trackMetric('promise_notification', duration, {
         ...metadata,
         status: 'error',
@@ -108,13 +132,7 @@ export const showNotification = {
     }
   },
 
-  dismiss: (toastId: string) => {
+  dismiss: (toastId?: string) => {
     toast.dismiss(toastId)
   },
 }
-
-// Usage examples:
-// showNotification.success('Group created successfully!')
-// showNotification.error('Failed to join group')
-// const id = showNotification.loading('Processing transaction...')
-// showNotification.promise(contractCall, { loading, success, error })
