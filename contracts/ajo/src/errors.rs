@@ -61,4 +61,7 @@ pub enum AjoError {
     
     /// This group has been cancelled by its creator.
     GroupCancelled = 19,
+    
+    /// The contract has already been initialized.
+    AlreadyInitialized = 20,
 }
