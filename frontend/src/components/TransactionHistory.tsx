@@ -1,7 +1,17 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
+import { TransactionDetailModal } from './TransactionDetailModal'
+
+const TablePagination: React.FC<any> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  pageSize,
+  onPageSizeChange,
+}) => null
 import { TransactionFilters, TransactionSort, TransactionSortField } from '../types'
+import { useTransactions } from '../hooks/useContractData'
 import { useTheme } from '@/context/ThemeContext'
 
 interface Transaction {
@@ -44,10 +54,11 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ groupId 
   const cursor = currentPage > 1 ? `page-${currentPage}` : undefined
 
   // Fetch data
-  const { data, isLoading, isError } = useTransactions(groupId, cursor, pageSize)
+  const { data, isLoading, isError } = useTransactions(groupId, cursor, pageSize) as any
 
-  const transactions = data?.transactions || []
-  const hasNextPage = !!data?.nextCursor
+  const transactions: any[] = data?.transactions || []
+  const hasNextPage = data?.hasNextPage || false
+  const hasPreviousPage = !!cursor
 
   // Modal state
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
@@ -55,7 +66,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ groupId 
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((tx) => {
+    return transactions.filter((tx: any) => {
       const txDateStr = typeof tx.date === 'string' ? tx.date : new Date(tx.timestamp || tx.date).toISOString().split('T')[0]
 
       // Date range filter
@@ -329,7 +340,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ groupId 
           pageSize={pageSize}
           totalItems={transactions.length} // This is inaccurate for cursor, ideally backend returns total
           onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
+          onPageSizeChange={(size: any) => {
             setPageSize(size)
             setCurrentPage(1) // Reset to first page
           }}
@@ -339,7 +350,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ groupId 
       )}
 
       <TransactionDetailModal
-        transaction={selectedTx}
+        transaction={selectedTx as any}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

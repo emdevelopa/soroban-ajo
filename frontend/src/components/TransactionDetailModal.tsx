@@ -122,7 +122,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                         <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-800">
                             <p className="text-xs text-gray-400 mb-1">Transaction Hash</p>
                             <p className="text-sm font-mono text-gray-900 dark:text-white break-all mb-2">
-                                {hash || 'N/A'}
+                                {`${hash || 'N/A'}`}
                             </p>
                             <a
                                 href={stellarExpertUrl}

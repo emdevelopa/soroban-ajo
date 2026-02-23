@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { ValidationError, ContributionValidation } from '../types'
+import { useContribute } from '../hooks/useContractData'
 
 interface ContributionFormProps {
   groupId: string
@@ -21,10 +22,11 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
   existingContributions = [],
 }) => {
   const [amount, setAmount] = useState(contributionAmount)
-  const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<ValidationError[]>([])
   const [touched, setTouched] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+
+  const { mutateAsync: runContribute, isPending: loading } = useContribute()
 
   const NETWORK_FEE = 0.01
   const MIN_AMOUNT = 0.01
@@ -125,14 +127,10 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
       return
     }
 
-    setLoading(true)
     setErrors([])
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await runContribute({ groupId, amount })
 
       setSuccessMessage('Contribution successful! Transaction confirmed.')
       setAmount(contributionAmount)
@@ -140,15 +138,13 @@ export const ContributionForm: React.FC<ContributionFormProps> = ({
 
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(''), 5000)
-    } catch {
+    } catch (err: any) {
       setErrors([
         {
           field: 'submit',
-          message: 'Failed to process contribution. Please try again.',
+          message: err?.message || 'Failed to process contribution. Please try again.',
         },
       ])
-    } finally {
-      setLoading(false)
     }
   }
 

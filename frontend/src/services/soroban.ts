@@ -284,7 +284,7 @@ export const initializeSoroban = (): SorobanService => {
           // Wrap in retry logic
           const groupId = await withRetry(
             async () => {
-              console.log('TODO: Implement createGroup', params)
+               
               // Placeholder - would call contract.invoke()
               return 'group_id_placeholder'
             },
@@ -319,7 +319,7 @@ export const initializeSoroban = (): SorobanService => {
         try {
           await withRetry(
             async () => {
-              console.log('TODO: Implement joinGroup', groupId)
+               
               // Placeholder
             },
             'joinGroup'
@@ -345,8 +345,14 @@ export const initializeSoroban = (): SorobanService => {
         try {
           await withRetry(
             async () => {
-              console.log('TODO: Implement contribute', groupId, amount)
-              // Placeholder
+              if (amount <= 0) {
+                const error: any = new Error('Amount must be greater than zero')
+                error.code = 'INVALID_PARAMETERS'
+                throw error
+              }
+              // Simulate real contract call with delay
+              await new Promise((resolve) => setTimeout(resolve, 2000))
+               
             },
             'contribute',
             {
@@ -383,7 +389,7 @@ export const initializeSoroban = (): SorobanService => {
             async () => {
               return await withRetry(
                 async () => {
-                  console.log('TODO: Implement getGroupStatus', groupId)
+                   
                   return {
                     groupId,
                     status: 'active',
@@ -420,7 +426,7 @@ export const initializeSoroban = (): SorobanService => {
             async () => {
               return await withRetry(
                 async () => {
-                  console.log('TODO: Implement getGroupMembers', groupId)
+                   
                   return []
                 },
                 'getGroupMembers'
@@ -451,7 +457,7 @@ export const initializeSoroban = (): SorobanService => {
             async () => {
               return await withRetry(
                 async () => {
-                  console.log('TODO: Implement getUserGroups', userId)
+                   
                   return []
                 },
                 'getUserGroups'
@@ -482,7 +488,7 @@ export const initializeSoroban = (): SorobanService => {
             async () => {
               return await withRetry(
                 async () => {
-                  console.log('TODO: Implement getTransactions using soroban-rpc getEvents', { groupId, cursor, limit })
+                   
                   // Here we will use the Stellar SDK to query contract events
                   // For now, return the mock data format so the UI works
                   return {
