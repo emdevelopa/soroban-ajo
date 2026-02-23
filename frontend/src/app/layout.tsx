@@ -50,20 +50,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>
-          <AppLayout>{children}</AppLayout>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              className: 'text-sm font-medium',
-              style: {
-                borderRadius: '8px',
-                background: '#333',
-                color: '#fff',
-              },
-            }}
-          />
-        </Providers>
+        <div className="pattern-overlay gradient-mesh min-h-screen">
+          <Providers>
+            <AppLayout>{children}</AppLayout>
+          </Providers>
+        </div>
       </body>
     </html>
   )
