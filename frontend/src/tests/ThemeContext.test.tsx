@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { ThemeProvider } from '../context/ThemeContext'
-import { useTheme } from '@/hooks/useTheme'
+import { useTheme } from '@/context/ThemeContext'
 
 function Harness() {
   const { mode, resolvedTheme, setMode, toggleTheme } = useTheme()

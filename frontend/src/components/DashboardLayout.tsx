@@ -5,9 +5,9 @@
 import { useAuthContext } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { GroupCard } from './GroupCard'
 import { WalletConnector } from './WalletConnector'
-import { useAuthContext } from '@/context/AuthContext'
 
 export const DashboardLayout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)

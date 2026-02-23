@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useTheme } from '@/hooks/useTheme'
+import { useTheme } from '@/context/ThemeContext'
 
 interface TutorialStep {
   title: string

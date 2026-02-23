@@ -33,7 +33,8 @@ export interface Transaction {
   amount: number
   type: 'contribution' | 'payout' | 'refund'
   timestamp: string
-  status: 'pending' | 'confirmed' | 'failed'
+  date?: string // Fallback for components transitioning to timestamp
+  status: 'pending' | 'confirmed' | 'failed' | 'completed'
 }
 
 export interface GroupStatus {
