@@ -23,7 +23,7 @@ export class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!this.isEnabled) {
-      console.log('Email service disabled. Would send:', options.subject);
+      // Service disabled - no API key configured
       return false;
     }
 

@@ -385,7 +385,7 @@ export function CustomStatusDisplay({ groupId }: { groupId: string }) {
  * Automatically refresh every minute:
  */
 export function AutoRefreshStatus({ groupId }: { groupId: string }) {
-  const { data, refetch } = useGroupStatus(groupId)
+  const { refetch } = useGroupStatus(groupId)
 
   // Auto-refresh every 60 seconds
   React.useEffect(() => {

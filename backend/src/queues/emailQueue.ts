@@ -66,7 +66,7 @@ emailQueue.process(async (job) => {
 
 // Queue event handlers
 emailQueue.on('completed', (job) => {
-  console.log(`Email job ${job.id} completed`);
+  // Job completed successfully
 });
 
 emailQueue.on('failed', (job, err) => {

@@ -39,7 +39,7 @@ export default function Dashboard() {
     router.push(`/groups/${groupId}`)
   }
 
-  const handleJoinGroup = (groupId: string) => {
+  const handleJoinGroup = (_groupId: string) => {
     // TODO: Implement join group logic
   }
 
