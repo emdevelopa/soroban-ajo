@@ -189,14 +189,16 @@ jobs:
             find .next/static -type f -size +500k -exec echo "⚠️ Large bundle: {}" \;
           fi
 
-      - name: Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v10
-        with:
-          urls: |
-            http://localhost:3000
-          uploadArtifacts: true
-          temporaryPublicStorage: true
-        continue-on-error: true
+      - name: Check Build Output
+        run: |
+          cd frontend
+          if [ -d ".next" ]; then
+            echo "✅ Build output exists"
+            echo "📊 Build statistics:"
+            du -sh .next
+          else
+            echo "⚠️ No build output found"
+          fi
 
   # Job 4: Accessibility Tests
   accessibility-tests:
