@@ -32,6 +32,18 @@ pub enum StorageKey {
     /// Optional metadata for a group.
     /// Stored in persistent storage under `("METADATA", group_id)`.
     GroupMetadata(u64),
+
+    /// Contribution record with penalty information.
+    /// Stored in persistent storage under `("CONTREC", group_id, cycle, member)`.
+    ContributionDetail(u64, u32, Address),
+
+    /// Member penalty statistics for a group.
+    /// Stored in persistent storage under `("PENALTY", group_id, member)`.
+    MemberPenalty(u64, Address),
+
+    /// Penalty pool for current cycle.
+    /// Stored in persistent storage under `("PENPOOL", group_id, cycle)`.
+    CyclePenaltyPool(u64, u32),
 }
 
 impl StorageKey {
@@ -42,7 +54,7 @@ impl StorageKey {
     /// in a tuple at the storage call site; this method returns only the symbol portion.
     ///
     /// # Arguments
-    /// * `env` - The contract environment (needed for symbol creation)
+    /// * `_env` - The contract environment (reserved for future use)
     ///
     /// # Returns
     /// The [`Symbol`] corresponding to this key variant's prefix
@@ -54,6 +66,9 @@ impl StorageKey {
             StorageKey::Contribution(_, _, _) => symbol_short!("CONTRIB"),
             StorageKey::PayoutReceived(_, _) => symbol_short!("PAYOUT"),
             StorageKey::GroupMetadata(_) => symbol_short!("METADATA"),
+            StorageKey::ContributionDetail(_, _, _) => symbol_short!("CONTREC"),
+            StorageKey::MemberPenalty(_, _) => symbol_short!("PENALTY"),
+            StorageKey::CyclePenaltyPool(_, _) => symbol_short!("PENPOOL"),
         }
     }
 }
@@ -278,4 +293,243 @@ pub fn get_group_metadata(env: &Env, group_id: u64) -> Option<crate::types::Grou
 pub fn has_group_metadata(env: &Env, group_id: u64) -> bool {
     let key = (symbol_short!("METADATA"), group_id);
     env.storage().persistent().has(&key)
+}
+
+/// Stores detailed contribution record with penalty information.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group the contribution belongs to
+/// * `cycle` - The cycle number
+/// * `member` - The contributing member's address
+/// * `record` - The contribution record with penalty details
+pub fn store_contribution_detail(
+    env: &Env,
+    group_id: u64,
+    cycle: u32,
+    member: &Address,
+    record: &crate::types::ContributionRecord,
+) {
+    let key = (symbol_short!("CONTREC"), group_id, cycle, member);
+    env.storage().persistent().set(&key, record);
+}
+
+/// Retrieves detailed contribution record.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group to check
+/// * `cycle` - The cycle number
+/// * `member` - The member address
+///
+/// # Returns
+/// `Some(ContributionRecord)` if exists, `None` otherwise
+pub fn get_contribution_detail(
+    env: &Env,
+    group_id: u64,
+    cycle: u32,
+    member: &Address,
+) -> Option<crate::types::ContributionRecord> {
+    let key = (symbol_short!("CONTREC"), group_id, cycle, member);
+    env.storage().persistent().get(&key)
+}
+
+/// Stores or updates member penalty statistics.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group the member belongs to
+/// * `member` - The member's address
+/// * `record` - The penalty record
+pub fn store_member_penalty(
+    env: &Env,
+    group_id: u64,
+    member: &Address,
+    record: &crate::types::MemberPenaltyRecord,
+) {
+    let key = (symbol_short!("PENALTY"), group_id, member);
+    env.storage().persistent().set(&key, record);
+}
+
+/// Retrieves member penalty statistics.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group to check
+/// * `member` - The member address
+///
+/// # Returns
+/// `Some(MemberPenaltyRecord)` if exists, `None` otherwise
+pub fn get_member_penalty(
+    env: &Env,
+    group_id: u64,
+    member: &Address,
+) -> Option<crate::types::MemberPenaltyRecord> {
+    let key = (symbol_short!("PENALTY"), group_id, member);
+    env.storage().persistent().get(&key)
+}
+
+/// Stores the penalty pool for a cycle.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `cycle` - The cycle number
+/// * `amount` - Total penalties collected in this cycle
+pub fn store_cycle_penalty_pool(env: &Env, group_id: u64, cycle: u32, amount: i128) {
+    let key = (symbol_short!("PENPOOL"), group_id, cycle);
+    env.storage().persistent().set(&key, &amount);
+}
+
+/// Retrieves the penalty pool for a cycle.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `cycle` - The cycle number
+///
+/// # Returns
+/// Total penalties collected, defaults to 0 if not set
+pub fn get_cycle_penalty_pool(env: &Env, group_id: u64, cycle: u32) -> i128 {
+    let key = (symbol_short!("PENPOOL"), group_id, cycle);
+    env.storage().persistent().get(&key).unwrap_or(0)
+}
+
+/// Adds a penalty amount to the cycle's penalty pool.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `cycle` - The cycle number
+/// * `penalty` - Penalty amount to add
+pub fn add_to_penalty_pool(env: &Env, group_id: u64, cycle: u32, penalty: i128) {
+    let current = get_cycle_penalty_pool(env, group_id, cycle);
+    store_cycle_penalty_pool(env, group_id, cycle, current + penalty);
+}
+
+/// Stores a refund request for a group.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group the refund request is for
+/// * `request` - The refund request data
+pub fn store_refund_request(env: &Env, group_id: u64, request: &crate::types::RefundRequest) {
+    let key = (symbol_short!("REFREQ"), group_id);
+    env.storage().persistent().set(&key, request);
+}
+
+/// Retrieves a refund request for a group.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group to check
+///
+/// # Returns
+/// `Some(RefundRequest)` if exists, `None` otherwise
+pub fn get_refund_request(env: &Env, group_id: u64) -> Option<crate::types::RefundRequest> {
+    let key = (symbol_short!("REFREQ"), group_id);
+    env.storage().persistent().get(&key)
+}
+
+/// Checks if a refund request exists for a group.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group to check
+///
+/// # Returns
+/// `true` if a refund request exists, `false` otherwise
+pub fn has_refund_request(env: &Env, group_id: u64) -> bool {
+    let key = (symbol_short!("REFREQ"), group_id);
+    env.storage().persistent().has(&key)
+}
+
+/// Removes a refund request from storage.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group to remove the request for
+pub fn remove_refund_request(env: &Env, group_id: u64) {
+    let key = (symbol_short!("REFREQ"), group_id);
+    env.storage().persistent().remove(&key);
+}
+
+/// Stores a member's vote on a refund request.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `member` - The voting member's address
+/// * `vote` - The vote record
+pub fn store_refund_vote(
+    env: &Env,
+    group_id: u64,
+    member: &Address,
+    vote: &crate::types::RefundVote,
+) {
+    let key = (symbol_short!("REFVOTE"), group_id, member);
+    env.storage().persistent().set(&key, vote);
+}
+
+/// Retrieves a member's vote on a refund request.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `member` - The member's address
+///
+/// # Returns
+/// `Some(RefundVote)` if the member has voted, `None` otherwise
+pub fn get_refund_vote(env: &Env, group_id: u64, member: &Address) -> Option<crate::types::RefundVote> {
+    let key = (symbol_short!("REFVOTE"), group_id, member);
+    env.storage().persistent().get(&key)
+}
+
+/// Checks if a member has voted on a refund request.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `member` - The member's address
+///
+/// # Returns
+/// `true` if the member has voted, `false` otherwise
+pub fn has_voted(env: &Env, group_id: u64, member: &Address) -> bool {
+    let key = (symbol_short!("REFVOTE"), group_id, member);
+    env.storage().persistent().has(&key)
+}
+
+/// Stores a refund record.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `member` - The member receiving the refund
+/// * `record` - The refund record
+pub fn store_refund_record(
+    env: &Env,
+    group_id: u64,
+    member: &Address,
+    record: &crate::types::RefundRecord,
+) {
+    let key = (symbol_short!("REFUND"), group_id, member);
+    env.storage().persistent().set(&key, record);
+}
+
+/// Retrieves a refund record for a member.
+///
+/// # Arguments
+/// * `env` - The contract environment
+/// * `group_id` - The group
+/// * `member` - The member's address
+///
+/// # Returns
+/// `Some(RefundRecord)` if exists, `None` otherwise
+pub fn get_refund_record(
+    env: &Env,
+    group_id: u64,
+    member: &Address,
+) -> Option<crate::types::RefundRecord> {
+    let key = (symbol_short!("REFUND"), group_id, member);
+    env.storage().persistent().get(&key)
 }

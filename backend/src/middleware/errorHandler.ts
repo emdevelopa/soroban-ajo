@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express'
 import { logger } from '../utils/logger'
 import { AppError, ErrorFactory } from '../errors/AppError'
-export { AppError }
+
 import { ZodError } from 'zod'
+
+// Re-export AppError for use in other modules
+export { AppError, ErrorFactory } from '../errors/AppError'
 
 /**
  * Global error handling middleware
@@ -73,7 +76,7 @@ export function notFoundHandler(req: Request, res: Response) {
  * Async error wrapper
  * Wraps async route handlers to catch errors and pass to error middleware
  */
-export function asyncHandler(fn: Function) {
+export function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next)
   }

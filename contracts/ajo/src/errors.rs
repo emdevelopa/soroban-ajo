@@ -64,7 +64,55 @@ pub enum AjoError {
 
     /// The contract has already been initialized.
     AlreadyInitialized = 20,
+    
+    /// The contract is currently paused and cannot execute this operation.
+    ContractPaused = 21,
+    
+    /// Only the admin can pause the contract.
+    UnauthorizedPause = 22,
+    
+    /// Only the admin can unpause the contract.
+    UnauthorizedUnpause = 23,
 
-    /// One of the metadata fields exceeds the length limit.
-    MetadataTooLong = 21,
+    /// Contribution is too late - grace period has expired.
+    GracePeriodExpired = 24,
+
+    /// Invalid grace period duration.
+    InvalidGracePeriod = 25,
+
+    /// Invalid penalty rate (must be 0-100).
+    InvalidPenaltyRate = 26,
+
+    /// Metadata field exceeds maximum length.
+    MetadataTooLong = 27,
+
+    /// Cannot cancel group after first payout.
+    CannotCancelAfterPayout = 28,
+
+    /// Only the group creator can cancel the group.
+    OnlyCreatorCanCancel = 29,
+
+    /// Refund request already exists for this group.
+    RefundRequestExists = 30,
+
+    /// No active refund request for this group.
+    NoRefundRequest = 31,
+
+    /// Member has already voted on this refund request.
+    AlreadyVoted = 32,
+
+    /// Voting period has not ended yet.
+    VotingPeriodActive = 33,
+
+    /// Voting period has ended.
+    VotingPeriodEnded = 34,
+
+    /// Refund request was not approved.
+    RefundNotApproved = 35,
+
+    /// Refund has already been executed.
+    RefundAlreadyExecuted = 36,
+
+    /// Cannot request refund before cycle deadline.
+    CycleNotExpired = 37,
 }

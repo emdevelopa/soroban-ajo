@@ -9,7 +9,7 @@ const authSchema = z.object({
 })
 
 // POST /api/auth/token - Generate JWT token
-router.post('/token', (req: Request, res: Response) => {
+router.post('/token', (req: Request, res: Response): void => {
   try {
     const { publicKey } = authSchema.parse(req.body)
     const token = AuthService.generateToken(publicKey)

@@ -254,12 +254,12 @@ export const verifyWebhookSignature = (
     const webhookId = req.headers['x-webhook-id'] as string
 
     if (!signature || !webhookId) {
-      throw new AppError('Missing webhook signature or ID', 'WEBHOOK_AUTH_ERROR', 401)
+      throw new AppError('Missing webhook signature or ID', 'UNAUTHORIZED', 401)
     }
 
     const endpoint = webhookService.getEndpoint(webhookId)
     if (!endpoint) {
-      throw new AppError('Invalid webhook endpoint', 'WEBHOOK_AUTH_ERROR', 401)
+      throw new AppError('Invalid webhook endpoint', 'UNAUTHORIZED', 401)
     }
 
     const payload = req.body
@@ -270,7 +270,7 @@ export const verifyWebhookSignature = (
     )
 
     if (!isValid) {
-      throw new AppError('Invalid webhook signature', 'WEBHOOK_AUTH_ERROR', 401)
+      throw new AppError('Invalid webhook signature', 'UNAUTHORIZED', 401)
     }
 
     next()
@@ -308,7 +308,7 @@ export const webhookController = {
       const { url, events, secret, headers } = req.body
 
       if (!url || !Array.isArray(events)) {
-        throw new AppError('Invalid webhook configuration', 'VALIDATION_ERROR', 400)
+        throw new AppError('Invalid webhook configuration', 'BAD_REQUEST', 400)
       }
 
       const id = webhookService.registerEndpoint({

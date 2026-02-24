@@ -11,6 +11,7 @@ import { healthRouter } from './routes/health'
 import { webhooksRouter } from './routes/webhooks'
 import { authRouter } from './routes/auth'
 import { analyticsRouter } from './routes/analytics'
+import { emailRouter } from './routes/email'
 import { jobsRouter } from './routes/jobs'
 import { setupSwagger } from './swagger'
 import { apiLimiter, strictLimiter } from './middleware/rateLimiter'
@@ -42,6 +43,7 @@ app.use('/api/auth', strictLimiter, authRouter)
 app.use('/api/groups', groupsRouter)
 app.use('/api/webhooks', strictLimiter, webhooksRouter)
 app.use('/api/analytics', analyticsRouter)
+app.use('/api/email', emailRouter)
 app.use('/api/jobs', jobsRouter)
 
 // Error handling

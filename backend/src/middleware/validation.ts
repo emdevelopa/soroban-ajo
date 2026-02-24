@@ -6,7 +6,7 @@ import { z, ZodError, ZodSchema } from 'zod'
  * Creates middleware that validates request data against a Zod schema
  */
 export function validateRequest(schema: ZodSchema, source: 'body' | 'query' | 'params' = 'body') {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const data = req[source]
       const validated = await schema.parseAsync(data)
