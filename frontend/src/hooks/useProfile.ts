@@ -332,5 +332,11 @@ export const useProfile = (address?: string) => {
     addActivity,
     updateStats,
     refreshProfile: () => address && loadProfile(address),
+    isLoading,
+    error,
+    updateProfile,
+    savePreferences,
+    refreshProfile: fetchProfile,
+    refreshActivities: fetchActivities,
   }
 }

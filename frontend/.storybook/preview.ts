@@ -1,6 +1,11 @@
-import type { Preview } from "@storybook/react-vite";
-import '../src/styles/index.css';
+import type { Preview } from '@storybook/react'
+import '../src/styles/globals.css'
+import '../src/styles/index.css'
 
+/**
+ * Storybook preview setup (#75)
+ * Global decorators, parameters, and Tailwind are applied here.
+ */
 const preview: Preview = {
   parameters: {
     controls: {
@@ -9,14 +14,16 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-
-    a11y: {
-      // 'todo' - show a11y violations in the test UI only
-      // 'error' - fail CI on a11y violations
-      // 'off' - skip a11y checks entirely
-      test: "todo",
+    layout: 'centered',
+    backgrounds: {
+      default: 'light',
+      values: [
+        { name: 'light', value: '#ffffff' },
+        { name: 'dark', value: '#1a1a2e' },
+        { name: 'gray', value: '#f3f4f6' },
+      ],
     },
   },
-};
+}
 
-export default preview;
+export default preview

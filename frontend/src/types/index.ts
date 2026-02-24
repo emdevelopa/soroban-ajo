@@ -33,7 +33,8 @@ export interface Transaction {
   amount: number
   type: 'contribution' | 'payout' | 'refund'
   timestamp: string
-  status: 'pending' | 'confirmed' | 'failed'
+  date?: string // Fallback for components transitioning to timestamp
+  status: 'pending' | 'confirmed' | 'failed' | 'completed'
 }
 
 export interface GroupStatus {
@@ -88,3 +89,16 @@ export interface ContributionFormData {
   hasExistingContribution?: boolean
   lastContributionDate?: string
 }
+
+export interface SorobanTransactionResponse {
+  hash: string
+  status: 'pending' | 'success' | 'failed'
+}
+
+export interface ContractInvocationResult {
+  returnValue: any
+  simulatedFootprint: any
+}
+
+// Re-export profile types
+export type { UserProfile, UserPreferences, UserStats, ActivityItem } from './profile'

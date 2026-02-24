@@ -1,17 +1,29 @@
-import type { StorybookConfig } from '@storybook/react-vite';
+import type { StorybookConfig } from '@storybook/nextjs'
 
+/**
+ * Storybook configuration for Next.js (#75)
+ * Uses @storybook/nextjs for Next.js 14 (Image, Router, aliases, Tailwind).
+ */
 const config: StorybookConfig = {
-  "stories": [
-    "../src/**/*.mdx",
-    "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
+  stories: [
+    '../stories/**/*.mdx',
+    '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
-  "addons": [
-    "@chromatic-com/storybook",
-    "@storybook/addon-vitest",
-    "@storybook/addon-a11y",
-    "@storybook/addon-docs",
-    "@storybook/addon-onboarding"
+  addons: [
+    '@storybook/addon-onboarding',
+    '@storybook/addon-links',
+    '@storybook/addon-essentials',
+    '@storybook/addon-interactions',
   ],
-  "framework": "@storybook/react-vite"
-};
-export default config;
+  framework: {
+    name: '@storybook/nextjs',
+    options: {},
+  },
+  staticDirs: ['../public'],
+  docs: {
+    autodocs: 'tag',
+  },
+}
+
+export default config
