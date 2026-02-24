@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { WalletConnector } from './WalletConnector'
 import { NotificationHistory } from './NotificationHistory'
+import NotificationBell from './NotificationBell'
 import Onboarding from './Onboarding'
 import TourGuide from './TourGuide'
 import { useOnboarding } from '@/hooks/useOnboarding'
@@ -84,6 +85,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             </Link>
 
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <NotificationHistory />
               <div data-tour="wallet-connect">
                 <WalletConnector />
